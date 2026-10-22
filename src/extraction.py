@@ -5,9 +5,15 @@ from src.contrat import Evenement
 
 
 def masquer_secrets(texte: str) -> str:
-    return re.sub(
+    texte = re.sub(
         r'\b(password|passwd|token|secret|api_key|apikey)(\s*[=:]\s*)[^ &;,]+',
         r'\1\2[SECRET]',
+        texte,
+        flags=re.IGNORECASE
+    )
+    return re.sub(
+        r'\b(Bearer\s+)[^\s&;,]+',
+        r'\1[SECRET]',
         texte,
         flags=re.IGNORECASE
     )
