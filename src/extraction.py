@@ -2,11 +2,17 @@ from src.contrat import Evenement
 
 
 def masquer_secrets(texte: str) -> str:
-    raise NotImplementedError
+    import re
+
+    return re.sub(
+        r'(?i)\b(password|passwd|token|secret|api_key|apikey)(\s*[=:]\s*)[^ &;,]+',
+        r'\1\2[SECRET]',
+        texte
+    )
 
 
 def normaliser_log(ligne: str, numero: int, source: str = "DOCKER",
-                   environment: str = "production") -> Evenement:
+                  environment: str = "production") -> Evenement:
     raise NotImplementedError
 
 
