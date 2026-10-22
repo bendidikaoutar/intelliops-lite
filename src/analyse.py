@@ -2,20 +2,50 @@ from src.contrat import Analyse, Evenement
 
 
 def est_doublon(evt: Evenement, vus: set) -> bool:
-    raise NotImplementedError
+    cle = (evt.timestamp, evt.source, evt.component, evt.event_type, evt.message)
+    if cle in vus:
+        return True
+    vus.add(cle)
+    return False
 
 
 def compter_erreurs(evt: Evenement, compteur: dict) -> int:
-    raise NotImplementedError
+    if evt.event_type == "LOG" and evt.severity in ("HIGH", "CRITICAL"):
+        compteur[evt.component] = compteur.get(evt.component, 0) + 1
+        return compteur[evt.component]
+    return 0
 
 
 def chercher_procedures(evt: Evenement, base: dict) -> list:
-    raise NotImplementedError
+    message = evt.message.lower()
+    return [procedure for mot_cle, procedure in base.items()
+            if mot_cle.lower() in message]
 
 
 def classifier(evt: Evenement, nb_erreurs: int = 0) -> str:
-    raise NotImplementedError
+    if nb_erreurs >= 3:
+        return "CRITICAL"
+    return evt.severity
 
 
 def analyser(evt: Evenement, base: dict, nb_erreurs: int = 0) -> Analyse:
-    raise NotImplementedError
+    niveau = classifier(evt, nb_erreurs)
+
+    procedures = chercher_procedures(evt, base)
+    if procedures:
+        explication = " | ".join(procedures)
+    else:
+        explication = "Cause inconnue : analyse manuelle requise"
+
+    if evt.event_type == "VULNERABILITY":
+        action = f"Mettre a jour la dependance {evt.component}"
+    elif evt.event_type == "PIPELINE_FAILURE":
+        action = f"Relancer le pipeline {evt.component}"
+    elif niveau == "CRITICAL":
+        action = f"Redemarrer le service {evt.component}"
+    else:
+        action = "Surveiller"
+
+    sensible = action.startswith("Redemarrer")
+    evt.status = "ANALYZED"
+    return Analyse(evt.id, niveau, explication, action, sensible, [evt.source])
