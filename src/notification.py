@@ -39,9 +39,23 @@ def notifier(evt: Evenement, analyse: Analyse, historique: list) -> Notification
     return notification
 
 def valider_action(analyse: Analyse, reponse: str) -> bool:
-    raise NotImplementedError
+    if not analyse.sensitive:
+        return True
+
+    return reponse.strip().lower() in ("o", "oui", "ok", "yes")
 
 
 def tracer_decision(analyse: Analyse, approuve: bool, acteur: str,
                     journal: list, horodatage: str) -> dict:
-    raise NotImplementedError
+
+    decision = {
+        "event_id": analyse.event_id,
+        "action": analyse.action,
+        "approved": approuve,
+        "actor": acteur,
+        "timestamp": horodatage
+    }
+
+    journal.append(decision)
+
+    return decision
