@@ -26,8 +26,17 @@ def rediger(evt: Evenement, analyse: Analyse) -> str:
 
 
 def notifier(evt: Evenement, analyse: Analyse, historique: list) -> Notification:
-    raise NotImplementedError
+    notification = Notification(
+        event_id=evt.id,
+        channel=choisir_canal(analyse.level),
+        recipient="equipe-ops",
+        text=rediger(evt, analyse)
+    )
 
+    historique.append(notification)
+    evt.status = "NOTIFIED"
+
+    return notification
 
 def valider_action(analyse: Analyse, reponse: str) -> bool:
     raise NotImplementedError
